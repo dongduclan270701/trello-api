@@ -14,11 +14,6 @@ const bootServer = () => {
     const app = express()
 
     app.get('/test', async (req, res) => {
-        let fakeData = {
-            title: 'kassDev2'
-        }
-        const newBoard = await BoardModel.createNew(fakeData)
-        console.log(newBoard)
         res.end('<h1>Hello World KassDev</h1><hr/>')
     })
 
