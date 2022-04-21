@@ -1,25 +1,19 @@
 import { MongoClient, ServerApiVersion } from 'mongodb'
 import { env } from '*/config/environment'
 
-const client = new MongoClient(env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 })
+let dbInstance = null
+
 export const connectDB = async () => {
-    try {
+    const client = new MongoClient(env.MONGODB_URI, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 })
+    // Connect the client to the server
+    await client.connect()
 
-        // Connect the client to the server
-        await client.connect()
-        //List databases
-        await listDatabases(client)
-
-        console.log('Connect successfully to server!')
-    } finally {
-        // Ensures that the client will close when finish/error
-        await client.close()
-    }
+    //Assign clientDB to our dbInstance
+    dbInstance = client.db(env.DATABASE_NAME)
 }
 
-const listDatabases = async () => {
-    const databasesList = await client.db().admin().listDatabases()
-    console.log(databasesList)
-    console.log('Your databases')
-    databasesList.databases.forEach(db => console.log(`- ${db.name}`))
+//Get Database Instance
+export const getDB = () => {
+    if (!dbInstance) throw new Error('Must connect to Database first!')
+    return dbInstance
 }
