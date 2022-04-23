@@ -1,7 +1,7 @@
 import express from 'express'
 import { connectDB } from '*/config/mongodb.js'
 import { env } from '*/config/environment'
-import { BoardModel } from '*/models/board.model.js'
+import { apiV1 } from '*/routes/v1'
 
 connectDB()
     .then(() => console.log('Connected MongoDB successfully to server'))
@@ -13,9 +13,11 @@ connectDB()
 const bootServer = () => {
     const app = express()
 
-    app.get('/test', async (req, res) => {
-        res.end('<h1>Hello World KassDev</h1><hr/>')
-    })
+    // Enable req.body data
+    app.use(express.json())
+
+    // Use APIs v1
+    app.use('/v1', apiV1)
 
     app.listen(env.APP_PORT, env.APP_HOST, () => {
         console.log(`Hello kassdev, I'm runnung at ${env.APP_HOST}:${env.APP_PORT}/`)
