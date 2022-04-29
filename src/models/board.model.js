@@ -1,5 +1,8 @@
 import Joi from 'joi'
 import { getDB } from '*/config/mongodb.js'
+import { ObjectId } from 'mongodb'
+import { ColumnModel } from './column.model'
+import { CardModel } from './card.model'
 
 // Define Board collection
 const boardCollectionName = 'boards'
@@ -24,4 +27,47 @@ const createNew = async (data) => {
         throw new Error(error)
     }
 }
-export const BoardModel = { createNew }
+
+const pushColumnOrder = async (boardId, columnId) => {
+    try {
+        const result = await getDB().collection(boardCollectionName).findOneAndUpdate(
+            { _id: ObjectId(boardId) },
+            { $push: { columnOrder: columnId } }
+        )
+        return result.value
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+const getFullBoard = async (boardId) => {
+    try {
+        const result = await getDB().collection(boardCollectionName).aggregate([
+            {
+                $match: {
+                    _id: ObjectId(boardId)
+                }
+            },
+            {
+                $lookup: {
+                    from: ColumnModel.columnCollectionName, // collection name
+                    localField: '_id',
+                    foreignField: 'boardId',
+                    as: 'columns'
+                }
+            },
+            {
+                $lookup: {
+                    from: CardModel.cardCollectionName, // collection name
+                    localField: '_id',
+                    foreignField: 'boardId',
+                    as: 'cards'
+                }
+            }
+        ]).toArray()
+        return result[0] || {}
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+export const BoardModel = { createNew, pushColumnOrder, getFullBoard }

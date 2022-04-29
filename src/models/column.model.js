@@ -1,11 +1,11 @@
 import Joi from 'joi'
 import { getDB } from '*/config/mongodb.js'
-import { ObjectID } from 'mongodb'
+import { ObjectId } from 'mongodb'
 
 // Define columns collection
 const columnCollectionName = 'columns'
 const columnCollectionSchema = Joi.object({
-    boardId: Joi.string().required(),
+    boardId: Joi.string().required(), // also ObjectId when create new
     title: Joi.string().required().min(3).max(20).trim(),
     cardOrder: Joi.array().items(Joi.string()).default([]),
     createAt: Joi.date().timestamp().default(Date.now()),
@@ -17,10 +17,35 @@ const validateSchema = async (data) => {
     return await columnCollectionSchema.validateAsync(data, { abortEarly: false }) // Hiển thị đầy đủ lỗi nếu trong trường data có 2 field trở lên bị lỗi
 }
 
+const findOneById = async (id) => {
+    try {
+        const result = await getDB().collection(columnCollectionName).findOne({ _id: ObjectId(id) })
+        return result
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
+const pushCardOrder = async (columnId, cardId) => {
+    try {
+        const result = await getDB().collection(columnCollectionName).findOneAndUpdate(
+            { _id: ObjectId(columnId) },
+            { $push: { cardOrder: cardId } }
+        )
+        return result.value
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
 const createNew = async (data) => {
     try {
-        const value = await validateSchema(data)
-        const result = await getDB().collection(columnCollectionName).insertOne(value)
+        const validatedValue = await validateSchema(data)
+        const insertValue = {
+            ...validatedValue,
+            boardId: ObjectId(validatedValue.boardId)
+        }
+        const result = await getDB().collection(columnCollectionName).insertOne(insertValue)
         return result
     } catch (error) {
         throw new Error(error)
@@ -30,9 +55,9 @@ const createNew = async (data) => {
 const update = async (id, data) => {
     try {
         const result = await getDB().collection(columnCollectionName).findOneAndUpdate(
-            { _id: ObjectID(id) },
-            { $set: data }
-            // { new: true, upsert: true } // mặc đinh là true khi update sẽ trả về bản gốc, chuyển false để trả về bản sau khi update
+            { _id: ObjectId(id) },
+            { $set: data },
+            { returnDocument: 'after' }
         )
         console.log(result.value)
         return result.value
@@ -41,4 +66,4 @@ const update = async (id, data) => {
     }
 }
 
-export const ColumnModel = { createNew, update }
+export const ColumnModel = { createNew, findOneById, pushCardOrder, update, columnCollectionName }
