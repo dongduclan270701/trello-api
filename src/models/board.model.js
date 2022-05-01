@@ -45,7 +45,8 @@ const getFullBoard = async (boardId) => {
         const result = await getDB().collection(boardCollectionName).aggregate([
             {
                 $match: {
-                    _id: ObjectId(boardId)
+                    _id: ObjectId(boardId),
+                    _destroy: false
                 }
             },
             {

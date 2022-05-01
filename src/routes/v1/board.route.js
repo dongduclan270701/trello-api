@@ -10,6 +10,6 @@ router.route('/')
 
 router.route('/:id')
     // .get((req, res) => console.log('GET list of Board'))
-    .post(boardController.getFullBoard)
+    .get(boardController.getFullBoard)
 
 export const boardRoutes = router

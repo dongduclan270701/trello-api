@@ -42,6 +42,19 @@ const createNew = async (data) => {
     }
 }
 
+const deleteMany = async (ids) => {
+    try {
+        const transfromIds = ids.map(i => ObjectId(i))
+        const result = await getDB().collection(cardCollectionName).updateMany(
+            { _id: { $in: transfromIds } },
+            { $set: { _destroy: true } }
+        )
+        return result
+    } catch (error) {
+        throw new Error(error)
+    }
+}
+
 const update = async (id, data) => {
     try {
         const result = await getDB().collection(cardCollectionName).findOneAndUpdate(
@@ -56,4 +69,4 @@ const update = async (id, data) => {
     }
 }
 
-export const CardModel = { createNew, findOneById, update, cardCollectionName }
+export const CardModel = { createNew, findOneById, update, cardCollectionName, deleteMany }
