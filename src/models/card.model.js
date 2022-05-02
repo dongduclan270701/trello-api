@@ -57,13 +57,21 @@ const deleteMany = async (ids) => {
 
 const update = async (id, data) => {
     try {
-        const result = await getDB().collection(cardCollectionName).findOneAndUpdate(
+        const updateData = {
+            ...data
+        }
+        if (data.boardId) {
+            updateData.boardId = ObjectId(data.boardId)
+        }
+        if (data.columnId) {
+            updateData.columnId = ObjectId(data.columnId)
+        }
+        const updateCard = await getDB().collection(cardCollectionName).findOneAndUpdate(
             { _id: ObjectId(id) },
-            { $set: data },
+            { $set: updateData },
             { returnDocument: 'after' }
         )
-        console.log(result.value)
-        return result.value
+        return updateCard.value
     } catch (error) {
         throw new Error(error)
     }
